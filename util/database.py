@@ -221,8 +221,7 @@ def get_orders(turn, order_id=None, user_id=None, role_id=None):
             order_scope,
             order_text,
             timestamp,
-            turn,
-            active
+            turn
         from orders_queue
         where 1=1 
             and (
