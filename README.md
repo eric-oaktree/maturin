@@ -9,7 +9,7 @@ install the required libraries: `pipenv install`
 
 run the app: `pipenv run python maturin.py`
 
-Servers are currently hardcoded, don't know if I will ever change that. If you want to use it on another server, change your `.env ` file to override the `PERSONAL` id.
+Servers are now configurable through the `.env` file. If you want to use it on another server, change your `.env` file to override the `PERSONAL_SERVER` and `HSKUCW` IDs.
 
 The following options can be set in a `.env` file:
 
@@ -37,3 +37,18 @@ LETTER_CHANNEL is the channel that you want letter threads to be added under.
 The PG options are for syncing the bot database with another database. The bot database is an embedded duck db instance, but that means to look at the data while the bot is running it needs to be extracted.
 
 PERSONAL_ID is your personal discord ID, and is used to permissions check some functions as an override.
+
+#### Example .env file
+
+```
+DISCORD_TOKEN=your_discord_token
+PERSONAL_SERVER=your_personal_server_id
+HSKUCW=your_hskucw_server_id
+LETTER_CHANNEL=your_letter_channel
+PG_HOST=your_pg_host
+PG_USER=your_pg_user
+PG_PASS=your_pg_pass
+PG_PORT=your_pg_port
+PG_DB=your_pg_db
+PERSONAL_ID=your_personal_id
+```

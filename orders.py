@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from dotenv import load_dotenv
 
 import discord
 import pandas as pd
@@ -9,6 +10,7 @@ from discord.utils import get
 from util import database
 from util.database import create_order, get_orders
 
+load_dotenv()
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
 HSKUCW = int(os.getenv("HSKUCW"))
 
