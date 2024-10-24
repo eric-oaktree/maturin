@@ -128,7 +128,13 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
             ],
         )
 
-        await interaction.followup.send(f"Updated order id {order['order_id']}")
+        await interaction.followup.send(
+            f"Updated order id {order['order_id']}", ephemeral=True
+        )
+        return
 
     else:
-        await interaction.followup.send(f"You cannot delete someone else's orders")
+        await interaction.followup.send(
+            f"You cannot delete someone else's orders", ephemeral=True
+        )
+        return
