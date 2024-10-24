@@ -89,6 +89,7 @@ async def view_orders(interaction: discord.Interaction, turn: int):
 
     if orders_df.empty:
         await interaction.followup.send("No Orders Found", ephemeral=True)
+        return
 
     # return orders
     message = []
