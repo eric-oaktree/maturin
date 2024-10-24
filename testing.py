@@ -2,7 +2,9 @@ import discord
 from discord import app_commands
 from discord.utils import get
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
 
 testing = app_commands.Group(
