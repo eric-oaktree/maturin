@@ -237,7 +237,7 @@ def get_orders(turn, order_id=None, user_id=None, role_id=None):
         params=[
             str(user_id),
             str(role_id),
-            str(order_id),
+            order_id,
             str(user_id),
             str(role_id),
             turn,
