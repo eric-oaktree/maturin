@@ -131,7 +131,7 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
 
     order = orders_df.iloc[0]
 
-    if order["user_id"] == interaction.user.id:
+    if order["user_id"] == str(interaction.user.id):
         database.execute_sql(
             f"delete from orders_queue where id=?",
             params=[
