@@ -212,36 +212,19 @@ def create_user_inbox(id, personal_inbox_id, personal_inbox_name):
 
 
 def get_orders(turn, order_id=None, user_id=None, role_id=None):
-    sql = """
-        select
-            order_id,
-            user_id,
-            role_id,
-            order_type,
-            order_scope,
-            order_text,
-            timestamp,
-            turn
-        from orders_queue
-        where 1=1 
-            and (
-                (user_id = ? and order_scope = 'user')
-                or (role_id = ? and order_scope = 'role')
-                or (order_id = ? and (user_id = ? or (role_id = ? and order_scope = 'role')))
-                ) 
-            and turn = ?
-    """
     sql2 = """
         select 
-            order_id,
-            user_id,
-            role_id,
+            oq.order_id
+            coalesce(u.nick, u.name) as username,
+            r.name as role,
             order_type,
             order_scope,
             order_text,
             timestamp,
             turn
-        from orders_queue
+        from orders_queue oq
+        join users u on oq.user_id = u.user_id
+        join roles r on oq.role_id = r.role_id
         where 1=1
             and turn = ?
     """
