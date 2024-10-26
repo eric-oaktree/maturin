@@ -231,19 +231,27 @@ def get_orders(turn, order_id=None, user_id=None, role_id=None):
                 ) 
             and turn = ?
     """
-    print(sql)
-    res = get_sql(
-        sql,
-        params=[
-            str(user_id),
-            str(role_id),
+    sql2 = """
+        select 
             order_id,
-            str(user_id),
-            str(role_id),
+            user_id,
+            role_id,
+            order_type,
+            order_scope,
+            order_text,
+            timestamp,
+            turn
+        from orders_queue
+        where 1=1
+            and turn = ?
+    """
+    res = get_sql(
+        sql2,
+        params=[
             turn,
         ],
     )
-    print(res)
+
     return res
 
 
