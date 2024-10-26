@@ -94,7 +94,7 @@ async def view_orders(interaction: discord.Interaction, turn: int):
     # return orders
     message = []
     for i, order in orders_df.iterrows():
-        line = f"{order.get('order_id')} | {order.get('username')} | {order.get('role')} | {order.get('order_type')} | {order.get('order_scope')} {order.get('order_text')} {order.get('timestamp')}"
+        line = f"{order.get('order_id')} | {order.get('username')} | {order.get('role')} | {order.get('order_type')} | {order.get('order_scope')} | {order.get('order_text')} | <t:{order.get('timestamp')}:f>"
         message.append(line)
 
     message = "\n".join(message)
