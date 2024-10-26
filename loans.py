@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 
 import discord
 from discord import app_commands
@@ -6,6 +7,7 @@ from discord.utils import get
 
 from util import database
 
+load_dotenv()
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
 HSKUCW = int(os.getenv("HSKUCW"))
 
