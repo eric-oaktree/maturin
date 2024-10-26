@@ -129,7 +129,7 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
         await interaction.followup.send("Too many orders found", ephemeral=True)
         return
 
-    index, order = orders_df.itterrows()[0]
+    index, order = orders_df.iterrows()[0]
 
     if order["user_id"] == interaction.user.id:
         database.execute_sql(
