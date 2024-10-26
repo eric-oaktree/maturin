@@ -91,6 +91,12 @@ async def view_orders(interaction: discord.Interaction, turn: int):
         await interaction.followup.send("No Orders Found", ephemeral=True)
         return
 
+    # filter DF for orders that they are allowed to see
+    orders_df = orders_df.loc[
+        (orders_df["user_id"] == str(interaction.user.id))
+        | (orders_df["role_id"] == str(trol.id))
+    ]
+
     # return orders
     message = []
     for i, order in orders_df.iterrows():

@@ -221,7 +221,9 @@ def get_orders(turn, order_id=None, user_id=None, role_id=None):
             order_scope,
             order_text,
             timestamp,
-            turn
+            turn,
+            oq.user_id,
+            oq.role_id
         from orders_queue oq
         join users u on oq.user_id = u.user_id
         join roles r on oq.role_id = r.role_id
