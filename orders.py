@@ -35,25 +35,14 @@ async def issue_order(
     order: str,
     order_as: str = "User",
 ):
-    # defer in case db is slow
     await interaction.response.defer(ephemeral=True)
 
-    # check for length
     if len(order) > 1900:
-        msg = f"""
-                Your subordinates fall asleep as your orders monologue reaches its third hour...
-                Failed to issue {order_as} {order_type} order for turn {turn}
-                {order[:1900]}...
-            """
-        await interaction.followup.send(
-            msg,
-            ephemeral=True,
-        )
+        await send_order_too_long_message(interaction, order, order_as, order_type, turn)
+        return
 
-    # get top role
     trol = interaction.user.top_role
 
-    # create order
     create_order(
         turn=turn,
         order_type=order_type,
@@ -63,7 +52,22 @@ async def issue_order(
         order_scope=order_as,
     )
 
-    # return confirmation message
+    await send_order_confirmation_message(interaction, order_as, order_type, turn, order)
+
+
+async def send_order_too_long_message(interaction, order, order_as, order_type, turn):
+    msg = f"""
+        Your subordinates fall asleep as your orders monologue reaches its third hour...
+        Failed to issue {order_as} {order_type} order for turn {turn}
+        {order[:1900]}...
+    """
+    await interaction.followup.send(
+        msg,
+        ephemeral=True,
+    )
+
+
+async def send_order_confirmation_message(interaction, order_as, order_type, turn, order):
     msg = f"""
         Issued {order_as} {order_type} order for turn {turn}
         {order}
@@ -79,29 +83,26 @@ async def issue_order(
     turn="The turn number you want the order to be in effect for",
 )
 async def view_orders(interaction: discord.Interaction, turn: int):
-    # defer in case db is slow
     await interaction.response.defer(ephemeral=True)
 
-    # get top role
     trol = interaction.user.top_role
 
-    # get orders
     orders_df = get_orders(turn, user_id=interaction.user.id, role_id=trol.id)
-    print(orders_df.head())
 
     if orders_df.empty:
         await interaction.followup.send("No Orders Found", ephemeral=True)
         return
 
-    # return orders
+    message = format_orders_message(orders_df)
+    await interaction.followup.send(message, ephemeral=True)
+
+
+def format_orders_message(orders_df):
     message = []
     for i, order in orders_df.iterrows():
         line = f"{order['order_id']} | {order['user_id']} | {order['role_id']} | {order['order_type']} | {order['order_scope']} \n {order['order_text']} \n {order['timestamp']}"
         message.append(line)
-
-    message = "\n".join(message)
-
-    await interaction.followup.send(message, ephemeral=True)
+    return "\n".join(message)
 
 
 @orders.command(name="delete_order", description="delete and order. No recovery.")
@@ -125,7 +126,7 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
         await interaction.followup.send("Too many orders found", ephemeral=True)
         return
 
-    index, order = orders_df.itterrows()[0]
+    index, order = orders_df.iterrows()[0]
 
     if order["user_id"] == interaction.user.id:
         database.execute_sql(
