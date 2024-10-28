@@ -126,6 +126,7 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
         return
 
     if orders_df.shape[0] > 1:
+        print(orders_df.head())
         await interaction.followup.send("Too many orders found", ephemeral=True)
         return
 
@@ -133,10 +134,8 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
 
     if order["user_id"] == str(interaction.user.id):
         database.execute_sql(
-            f"delete from orders_queue where order_id=?",
-            params=[
-                order["order_id"],
-            ],
+            f"delete from orders_queue where order_id=? and user_id=?",
+            params=[int(order["order_id"]), str(interaction.user.id)],
         )
 
         await interaction.followup.send(
