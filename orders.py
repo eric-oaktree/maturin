@@ -117,9 +117,11 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
     await interaction.response.defer(ephemeral=True)
 
     orders_df = get_orders(
-        turn=turn,
-        order_id=order_id,
+        turn=int(turn),
+        order_id=int(order_id),
     )
+
+    orders_df = orders_df.loc[orders_df["user_id"] == str(interaction.user.id)]
 
     if orders_df.empty:
         await interaction.followup.send("Order not found", ephemeral=True)
@@ -134,8 +136,9 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
 
     if order["user_id"] == str(interaction.user.id):
         database.execute_sql(
-            f"delete from orders_queue where order_id=? and user_id=?",
+            f"delete from orders_queue where order_id=? and user_id=? and turn = ?",
             params=[int(order["order_id"]), str(interaction.user.id)],
+            commit=True,
         )
 
         await interaction.followup.send(

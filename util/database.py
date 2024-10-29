@@ -211,7 +211,9 @@ def create_user_inbox(id, personal_inbox_id, personal_inbox_name):
     )
 
 
-def get_orders(turn, order_id=None, user_id=None, role_id=None):
+def get_orders(
+    turn: int, order_id: int = None, user_id: str = None, role_id: str = None
+):
     sql2 = """
         select 
             oq.order_id,
