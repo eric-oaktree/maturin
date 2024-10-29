@@ -374,9 +374,47 @@ def sync_all_tables():
         )
 
 
+async def sync_orders():
+    conn = connect_db()
+    cur = conn.cursor()
+
+    # TODO - this looks for a specific target table in the remote database. Should be configurable and documented
+    cur.execute("select max(order_id) from orders_order")
+
+    mx = cur.fetchone()[0]
+    if mx is None:
+        mx = 0
+    data = CONN.sql(f"select * from orders_quque where order_id > {mx} ").fetchall()
+    print("syncing", len(data), "orders")
+    cur.execute("BEGIN")
+    # create tmp table
+    cur.execute(f"create table tmp_orders as select * from orders_order where 1=0")
+
+    # load data
+    execute_values(
+        cur,
+        "insert into tmp_orders (order_id,user_id,role_id,order_type,order_scope,order_text,timestamp,turn) values (%s, %s, %s, %s, %s, %s, %s, %s)",
+        data,
+    )
+
+    # upsert
+    sql = f"""
+            INSERT INTO orders_order (order_id,user_id,role_id,order_type,order_scope,order_text,timestamp,turn)
+            SELECT order_id,user_id,role_id,order_type,order_scope,order_text,timestamp,turn
+            FROM tmp_orders
+            ON CONFLICT (order_id) DO NOTHING
+        """
+    cur.execute(sql)
+
+    # delete temp table
+    cur.execute(f"drop table tmp_orders")
+    conn.commit()
+
+
 def sync_messages():
     conn = connect_db()
     cur = conn.cursor()
+    # TODO - this looks for a specific target table in the remote database. Should be configurable and documented
     cur.execute("select max(time) from diplo_message")
     mx = cur.fetchone()[0]
     if mx is None:
