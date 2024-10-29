@@ -24,6 +24,12 @@ PG_PASS=
 PG_PORT=
 PG_DB=
 PERSONAL_ID=
+DIPLO_UMPIRE_ROLE=
+SPECTATOR_ROLE=
+DIPLOMAT_ROLE=
+BANKER_ROLE=
+NEWSPAPER_WRITER_ROLE=
+CAPTURED_ROLE=
 ```
 
 Discord token is the token for your application, as given by discord. You will also need to have the correct permissions set. I run under admin b/c I control the code... your trust may vary.
@@ -51,4 +57,10 @@ PG_PASS=your_pg_pass
 PG_PORT=your_pg_port
 PG_DB=your_pg_db
 PERSONAL_ID=your_personal_id
+DIPLO_UMPIRE_ROLE=Diplo Umpire
+SPECTATOR_ROLE=Spectator
+DIPLOMAT_ROLE=Diplomat
+BANKER_ROLE=Banker
+NEWSPAPER_WRITER_ROLE=Newspaper Writer
+CAPTURED_ROLE=Captured
 ```
