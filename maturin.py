@@ -58,6 +58,7 @@ async def sync_database(interaction, sync_roles: bool):
             await database.get_active_roles(guild=client.get_guild(int(HSKUCW)))
         database.sync_all_tables()
         database.sync_messages()
+        await database.sync_orders()
         await interaction.followup.send("Database synced successfully.", ephemeral=True)
     else:
         await interaction.response.send_message(f"Permission Denied", ephemeral=True)
