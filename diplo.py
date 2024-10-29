@@ -11,6 +11,10 @@ from util import database
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
 HSKUCW = int(os.getenv("HSKUCW"))
 
+if os.getenv("PG_HOST") is None:
+    DB = False
+else:
+    DB = True
 
 LETTER_CHANNEL = os.getenv("LETTER_CHANNEL")
 
@@ -270,7 +274,8 @@ async def send_letter(
             ephemeral=True,
         )
 
-        database.sync_messages()
+        if DB:
+            database.sync_messages()
 
     ### ROLES WORKFLOW
     elif isinstance(recipient, discord.Role):
@@ -411,4 +416,5 @@ async def send_letter(
             ephemeral=True,
         )
 
-        database.sync_messages()
+        if DB:
+            database.sync_messages()
