@@ -13,6 +13,8 @@ HSKUCW = int(os.getenv("HSKUCW"))
 
 
 LETTER_CHANNEL = os.getenv("LETTER_CHANNEL")
+DIPLO_UMPIRE_ROLE = os.getenv("DIPLO_UMPIRE_ROLE")
+SPECTATOR_ROLE = os.getenv("SPECTATOR_ROLE")
 
 
 loans = app_commands.Group(
@@ -36,8 +38,8 @@ async def submit_bid(
 ):
     # request metadata
     trole_id = interaction.user.top_role.id
-    u_role = get(interaction.guild.roles, name="Diplo Umpire")
-    s_role = get(interaction.guild.roles, name="Spectator")
+    u_role = get(interaction.guild.roles, name=DIPLO_UMPIRE_ROLE)
+    s_role = get(interaction.guild.roles, name=SPECTATOR_ROLE)
     if interaction.user.nick is None:
         usr = interaction.user.name
     else:

@@ -15,6 +15,12 @@ HSKUCW = int(os.getenv("HSKUCW"))
 
 
 LETTER_CHANNEL = os.getenv("LETTER_CHANNEL")
+DIPLO_UMPIRE_ROLE = os.getenv("DIPLO_UMPIRE_ROLE")
+SPECTATOR_ROLE = os.getenv("SPECTATOR_ROLE")
+DIPLOMAT_ROLE = os.getenv("DIPLOMAT_ROLE")
+BANKER_ROLE = os.getenv("BANKER_ROLE")
+NEWSPAPER_WRITER_ROLE = os.getenv("NEWSPAPER_WRITER_ROLE")
+CAPTURED_ROLE = os.getenv("CAPTURED_ROLE")
 
 
 diplo = app_commands.Group(
@@ -38,12 +44,12 @@ async def send_letter(
     message: str,
 ):
     # TODO - these roles should also be configurable
-    u_role = get(interaction.guild.roles, name="Diplo Umpire")
-    s_role = get(interaction.guild.roles, name="Spectator")
-    d_role = get(interaction.guild.roles, name="Diplomat")
-    b_role = get(interaction.guild.roles, name="Banker")
-    n_role = get(interaction.guild.roles, name="Newspaper Writer")
-    c_role = get(interaction.guild.roles, name="Captured")
+    u_role = get(interaction.guild.roles, name=DIPLO_UMPIRE_ROLE)
+    s_role = get(interaction.guild.roles, name=SPECTATOR_ROLE)
+    d_role = get(interaction.guild.roles, name=DIPLOMAT_ROLE)
+    b_role = get(interaction.guild.roles, name=BANKER_ROLE)
+    n_role = get(interaction.guild.roles, name=NEWSPAPER_WRITER_ROLE)
+    c_role = get(interaction.guild.roles, name=CAPTURED_ROLE)
     now_stamp = int(datetime.now().timestamp())
 
     # max_letter_size = 1900
