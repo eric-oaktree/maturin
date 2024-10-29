@@ -393,7 +393,7 @@ async def sync_orders():
     # load data
     execute_values(
         cur,
-        "insert into tmp_orders (order_id,user_id,role_id,order_type,order_scope,order_text,timestamp,turn) values (%s, %s, %s, %s, %s, %s, %s, %s)",
+        "insert into tmp_orders (order_id,user_id,role_id,order_type,order_scope,order_text,timestamp,turn) values %s",
         data,
     )
 
