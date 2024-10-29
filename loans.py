@@ -183,7 +183,7 @@ async def view_bid(interaction: discord.Interaction):
             master_message = ""
             for i, row in df.iterrows():
                 message = f"""
-                     {row['role_name']} ${row['amount']} for {row['term']} turns at {row['interest'] * 100}%\n
+                     {row['role_name']} ${row['amount']} for {row['term']} turns at {row['interest'] * 100}%
                 """
                 master_message += message
             await interaction.response.send_message(

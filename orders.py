@@ -8,6 +8,7 @@ from discord.utils import get
 
 from util import database
 from util.database import create_order, get_orders
+from typing import Literal
 
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
 HSKUCW = int(os.getenv("HSKUCW"))
@@ -22,16 +23,16 @@ orders = app_commands.Group(
 @orders.command(name="issue_order", description="make an order in game")
 @app_commands.describe(
     turn="The turn number you want the order to be in effect for",
-    order_type="Movement, Millitary, Economic",
+    order_type="Movement, Military, Economic",
     order="the text of your order",
     order_as="user or role",
 )
 async def issue_order(
     interaction: discord.Interaction,
     turn: int,
-    order_type: str,
+    order_type: Literal["Move", "Military", "Econ"],
     order: str,
-    order_as: str = "User",
+    order_as: Literal["User", "Role"] = "User",
 ):
     # defer in case db is slow
     await interaction.response.defer(ephemeral=True)
@@ -143,7 +144,7 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
         )
 
         await interaction.followup.send(
-            f"Updated order id {order['order_id']}", ephemeral=True
+            f"Deleted order id {order['order_id']}", ephemeral=True
         )
         return
 
