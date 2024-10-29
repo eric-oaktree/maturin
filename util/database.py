@@ -384,7 +384,7 @@ async def sync_orders():
     mx = cur.fetchone()[0]
     if mx is None:
         mx = 0
-    data = CONN.sql(f"select * from orders_quque where order_id > {mx} ").fetchall()
+    data = CONN.sql(f"select * from orders_queue where order_id > {mx} ").fetchall()
     print("syncing", len(data), "orders")
     cur.execute("BEGIN")
     # create tmp table
