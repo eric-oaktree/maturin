@@ -122,6 +122,7 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
     )
 
     orders_df = orders_df.loc[orders_df["user_id"] == str(interaction.user.id)]
+    orders_df = orders_df.loc[orders_df["order_id"] == order_id]
 
     if orders_df.empty:
         await interaction.followup.send("Order not found", ephemeral=True)
