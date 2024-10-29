@@ -86,7 +86,7 @@ async def view_orders(interaction: discord.Interaction, turn: int):
 
     # get orders
     orders_df = get_orders(turn, user_id=interaction.user.id, role_id=trol.id)
-    print(orders_df.head())
+    # print(orders_df.head())
 
     if orders_df.empty:
         await interaction.followup.send("No Orders Found", ephemeral=True)
@@ -130,7 +130,7 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
         return
 
     if orders_df.shape[0] > 1:
-        print(orders_df.head())
+        # print(orders_df.head())
         await interaction.followup.send("Too many orders found", ephemeral=True)
         return
 
