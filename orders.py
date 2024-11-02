@@ -6,12 +6,22 @@ import pandas as pd
 from discord import app_commands
 from discord.utils import get
 
-from util import database
+from util import database, tools
 from util.database import create_order, get_orders
 from typing import Literal
+from discord.utils import get
 
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
 HSKUCW = int(os.getenv("HSKUCW"))
+
+ECON_CHANNEL = os.getenv("ECON_ORDERS_CHANNEL")
+MOVE_CHANNEL = os.getenv("MOVE_ORDERS_CHANNEL")
+MIL_CHANNEL = os.getenv("MIL_ORDERS_CHANNEL")
+
+ADMIN_ROLES = [
+    "Lead Umpire",
+    "Assistant Umpire",
+]
 
 orders = app_commands.Group(
     name="orders",
@@ -166,7 +176,31 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
 
 
 async def print_orders(interaction: discord.Interaction, turn: int):
+    await interaction.response.defer(ephemeral=True)
+
+    channels = {
+        "econ": tools.get_channel_obj(interaction, ECON_CHANNEL),
+        "mil": tools.get_channel_obj(interaction, MIL_CHANNEL),
+        "move": tools.get_channel_obj(interaction, MOVE_CHANNEL),
+    }
+
     # check that the user has the admin role
+    admin_role_objs = [get(interaction.guild.roles, name=i) for i in ADMIN_ROLES]
+    trol = interaction.user.top_role
+    if trol not in admin_role_objs:
+        await interaction.followup.send(f"You are not an Admin...", ephemeral=True)
+        return
+
     # grab all orders for turn
+    orders_df = get_orders(turn)
+
     # iterate through roles and post to a channel
-    pass
+    roles = list(orders_df["role"].unique())
+    for role in roles:
+        # filter df
+        # post a turn message to the econ, orders, moves channels
+
+        pass
+
+
+# TODO - Add a system that will mark the orders as complete in the database using an emoji
