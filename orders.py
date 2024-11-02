@@ -40,14 +40,21 @@ async def issue_order(
     # check for length
     if len(order) > 1900:
         msg = f"""
-                Your subordinates fall asleep as your orders monologue reaches its third hour...
-                Failed to issue {order_as} {order_type} order for turn {turn}
+                Your subordinates fall asleep as your monologue reaches its third hour...
+                Failed to issue {order_as} {order_type} order for turn {turn}.
                 {order[:1900]}...
             """
         await interaction.followup.send(
             msg,
             ephemeral=True,
         )
+
+    # autoset invalid type scope combinations
+    if order_type == "Move" and order_as == "Role":
+        order_as = "User"
+
+    if order_type == "Econ" and order_as == "User":
+        order_as = "Role"
 
     # get top role
     trol = interaction.user.top_role
@@ -95,7 +102,10 @@ async def view_orders(interaction: discord.Interaction, turn: int):
     # filter DF for orders that they are allowed to see
     orders_df = orders_df.loc[
         (orders_df["user_id"] == str(interaction.user.id))
-        | (orders_df["role_id"] == str(trol.id))
+        | (
+            (orders_df["role_id"] == str(trol.id))
+            & (orders_df["order_scope"] == "Role")
+        )
     ]
 
     # return orders
@@ -153,3 +163,10 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
             f"You cannot delete someone else's orders", ephemeral=True
         )
         return
+
+
+async def print_orders(interaction: discord.Interaction, turn: int):
+    # check that the user has the admin role
+    # grab all orders for turn
+    # iterate through roles and post to a channel
+    pass
