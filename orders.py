@@ -121,12 +121,17 @@ async def view_orders(interaction: discord.Interaction, turn: int):
     # return orders
     message = []
     for i, order in orders_df.iterrows():
-        line = f"{order.get('order_id')} | {order.get('username')} | {order.get('role')} | {order.get('order_type')} | {order.get('order_scope')} | {order.get('order_text')} | <t:{order.get('timestamp')}:f>"
+        line = construct_line(order)
         message.append(line)
 
     message = "\n".join(message)
 
     await interaction.followup.send(message, ephemeral=True)
+
+
+def construct_line(order):
+    line = f"{order.get('order_id')} | {order.get('username')} | {order.get('role')} | {order.get('order_type')} | {order.get('order_scope')} | {order.get('order_text')} | <t:{order.get('timestamp')}:f>"
+    return line
 
 
 @orders.command(name="delete_order", description="delete and order. No recovery.")
@@ -179,9 +184,9 @@ async def print_orders(interaction: discord.Interaction, turn: int):
     await interaction.response.defer(ephemeral=True)
 
     channels = {
-        "econ": tools.get_channel_obj(interaction, ECON_CHANNEL),
-        "mil": tools.get_channel_obj(interaction, MIL_CHANNEL),
-        "move": tools.get_channel_obj(interaction, MOVE_CHANNEL),
+        "Econ": tools.get_channel_obj(interaction, ECON_CHANNEL),
+        "Military": tools.get_channel_obj(interaction, MIL_CHANNEL),
+        "Move": tools.get_channel_obj(interaction, MOVE_CHANNEL),
     }
 
     # check that the user has the admin role
@@ -194,13 +199,23 @@ async def print_orders(interaction: discord.Interaction, turn: int):
     # grab all orders for turn
     orders_df = get_orders(turn)
 
+    # post a turn message to the econ, orders, moves channels
+    for channel in channels.values():
+        await channel.send(f"## Turn {turn}")
+
     # iterate through roles and post to a channel
-    roles = list(orders_df["role"].unique())
+    roles = list(orders_df["role_id"].unique())
     for role in roles:
         # filter df
-        # post a turn message to the econ, orders, moves channels
+        tmp_df = orders_df[orders_df["role_id"] == role]
+        rname = list(tmp_df["role"].unique())[0]
 
-        pass
+        for channel in channels.values():
+            await channel.send(f"### {rname}")
+
+        for record in tmp_df.iterrows():
+            msg = construct_line(record)
+            await channels[record["oder_type"]].send(msg)
 
 
 # TODO - Add a system that will mark the orders as complete in the database using an emoji
