@@ -179,6 +179,13 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
         return
 
 
+@orders.command(
+    name="print_orders",
+    description="Admin Only - Puts the orders in the orders channel",
+)
+@app_commands.describe(
+    turn="The turn number of the order",
+)
 async def print_orders(interaction: discord.Interaction, turn: int):
     await interaction.response.defer(ephemeral=True)
 
