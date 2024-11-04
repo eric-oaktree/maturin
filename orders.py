@@ -102,7 +102,7 @@ async def view_orders(interaction: discord.Interaction, turn: int):
     trol = interaction.user.top_role
 
     # get orders
-    orders_df = get_orders(turn, user_id=interaction.user.id, role_id=trol.id)
+    orders_df = get_orders(turn)
     # print(orders_df.head())
 
     if orders_df.empty:
@@ -144,7 +144,6 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
 
     orders_df = get_orders(
         turn=int(turn),
-        order_id=int(order_id),
     )
 
     orders_df = orders_df.loc[orders_df["user_id"] == str(interaction.user.id)]
