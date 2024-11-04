@@ -221,7 +221,7 @@ async def print_orders(interaction: discord.Interaction, turn: int):
 
         for i, record in tmp_df.iterrows():
             msg = construct_line(record)
-            await channels[record["oder_type"]].send(msg)
+            await channels[record["order_type"]].send(msg)
 
 
 # TODO - Add a system that will mark the orders as complete in the database using an emoji
