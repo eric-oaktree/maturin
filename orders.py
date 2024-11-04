@@ -14,9 +14,9 @@ from discord.utils import get
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
 HSKUCW = int(os.getenv("HSKUCW"))
 
-ECON_CHANNEL = str(os.getenv("ECON_ORDERS_CHANNEL"))
-MOVE_CHANNEL = str(os.getenv("MOVE_ORDERS_CHANNEL"))
-MIL_CHANNEL = str(os.getenv("MIL_ORDERS_CHANNEL"))
+ECON_CHANNEL = str(os.getenv("ECON_CHANNEL"))
+MOVE_CHANNEL = str(os.getenv("MOVE_CHANNEL"))
+MIL_CHANNEL = str(os.getenv("MIL_CHANNEL"))
 
 ADMIN_ROLES = [
     "Lead Umpire",
