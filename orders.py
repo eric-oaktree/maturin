@@ -223,5 +223,8 @@ async def print_orders(interaction: discord.Interaction, turn: int):
             msg = construct_line(record)
             await channels[record["order_type"]].send(msg)
 
+    await interaction.followup.send(f"Orders Printed", ephemeral=True)
+    return
+
 
 # TODO - Add a system that will mark the orders as complete in the database using an emoji
