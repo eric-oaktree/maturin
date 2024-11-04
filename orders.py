@@ -219,7 +219,7 @@ async def print_orders(interaction: discord.Interaction, turn: int):
         for channel in channels.values():
             await channel.send(f"### {rname}")
 
-        for record in tmp_df.iterrows():
+        for i, record in tmp_df.iterrows():
             msg = construct_line(record)
             await channels[record["oder_type"]].send(msg)
 
