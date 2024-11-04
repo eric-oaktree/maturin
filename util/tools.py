@@ -9,4 +9,5 @@ def get_channel_obj(
         if channel.name == channel_name:
             return interaction.guild.get_channel(int(channel.id))
 
+    print("Could not find channel", channel_name)
     return None
