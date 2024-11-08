@@ -223,7 +223,6 @@ async def print_orders(interaction: discord.Interaction, turn: int):
     return
 
 
-# TODO - Add a system that will mark the orders as complete in the database using an emoji
 async def handle_reaction(
     payload: discord.RawReactionActionEvent,
     letter_channel: discord.TextChannel,
@@ -260,5 +259,7 @@ async def handle_reaction(
             print("No thread for that id", t_id)
             return None
 
-        thread = letter_channel.get_thread(int(inbox_df["personal_inbox_id"]))
-        await thread.send(f"Order Number {order_id} is complete")
+        thread = letter_channel.get_thread(int(inbox_df["personal_inbox_id"].iloc[0]))
+        await thread.send(
+            f"Order Number {order_id}, turn {odf.iloc[0]['turn']} is complete. \n {odf.iloc[0]['order_text']}"
+        )
