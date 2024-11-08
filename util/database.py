@@ -67,6 +67,12 @@ TABLES = {
         "timestamp int",
         "turn int",
     ],
+    "order_status_table": [
+        "order_id int",
+        "user_id varchar",
+        "status varchar",
+        "time timestamp",
+    ],
 }
 
 TABLES_ON = {
@@ -217,7 +223,7 @@ def get_orders(
     sql2 = """
         select 
             oq.order_id,
-            coalesce(u.nick, u.name) as username,
+            case when u.nick = 'None' then u.name else u.nick end as username,
             r.name as role,
             order_type,
             order_scope,
@@ -236,6 +242,35 @@ def get_orders(
         sql2,
         params=[
             turn,
+        ],
+    )
+
+    return res
+
+
+def get_order_by_id(order_id: int):
+    sql2 = """
+            select 
+                oq.order_id,
+                case when u.nick = 'None' then u.name else u.nick end as username,
+                r.name as role,
+                order_type,
+                order_scope,
+                order_text,
+                timestamp,
+                turn,
+                oq.user_id as user_id,
+                oq.role_id as role_id
+            from orders_queue oq
+            join users u on oq.user_id = u.user_id
+            join roles r on oq.role_id = r.role_id
+            where 1=1
+                and oq.order_id = ?
+        """
+    res = get_sql(
+        sql2,
+        params=[
+            order_id,
         ],
     )
 

@@ -18,10 +18,12 @@ ECON_CHANNEL = str(os.getenv("ECON_CHANNEL"))
 MOVE_CHANNEL = str(os.getenv("MOVE_CHANNEL"))
 MIL_CHANNEL = str(os.getenv("MIL_CHANNEL"))
 
+
 ADMIN_ROLES = [
     "Lead Umpire",
     "Assistant Umpire",
 ]
+
 
 orders = app_commands.Group(
     name="orders",
@@ -228,3 +230,43 @@ async def print_orders(interaction: discord.Interaction, turn: int):
 
 
 # TODO - Add a system that will mark the orders as complete in the database using an emoji
+async def handle_reaction(payload: discord.RawReactionActionEvent, letter_channel):
+    # check guild
+    if discord.Object(id=payload.guild_id) != discord.Object(id=int(HSKUCW)):
+        return
+
+    # check for apropriate roles
+    user = discord.Object(id=payload.user_id)
+    if user.top_role.name not in ADMIN_ROLES:
+        return
+
+    # check for message content
+    message = discord.Object(id=payload.message_id)
+    if payload.emoji.name == "✅":
+        # grab order id
+        order_id = message.content.split("|").strip()[0]
+        # grab order from db
+        odf = database.get_order_by_id(int(order_id))
+        # make order complete entry in order status table
+        database.execute_sql(
+            "insert into orders_status_table (order_id, user_id, status, time) values (?, ?, ?, ?)",
+            params=[
+                order_id,
+                payload.user_id,
+                "Complete",
+                int(datetime.now().timestamp()),
+            ],
+        )
+        # send complete event
+        if odf.iloc[0]["order_scope"] == "Role":
+            t_id = odf.iloc[0]["role_id"]
+        else:
+            t_id = odf.iloc[0]["user_id"]
+
+        inbox_df = database.get_user_inbox(t_id)
+        if inbox_df.empty:
+            print("No thread for that id", t_id)
+            return None
+
+        thread = letter_channel.get_thread(int(inbox_df["personal_inbox_id"]))
+        await thread.send(f"Order Number {order_id} is complete")
