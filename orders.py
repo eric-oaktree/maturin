@@ -19,12 +19,6 @@ MOVE_CHANNEL = str(os.getenv("MOVE_CHANNEL"))
 MIL_CHANNEL = str(os.getenv("MIL_CHANNEL"))
 
 
-ADMIN_ROLES = [
-    "Lead Umpire",
-    "Assistant Umpire",
-]
-
-
 orders = app_commands.Group(
     name="orders",
     description="Order Commands",
@@ -231,14 +225,6 @@ async def print_orders(interaction: discord.Interaction, turn: int):
 
 # TODO - Add a system that will mark the orders as complete in the database using an emoji
 async def handle_reaction(payload: discord.RawReactionActionEvent, letter_channel):
-    # check guild
-    if discord.Object(id=payload.guild_id) != discord.Object(id=int(HSKUCW)):
-        return
-
-    # check for apropriate roles
-    user = discord.Object(id=payload.user_id)
-    if user.top_role.name not in ADMIN_ROLES:
-        return
 
     # check for message content
     message = discord.Object(id=payload.message_id)

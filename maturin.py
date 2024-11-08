@@ -21,6 +21,11 @@ LETTER_CHANNEL = os.getenv("LETTER_CHANNEL")
 
 BOT_ID = int(os.getenv("BOT_ID"))
 
+ADMIN_ROLES = [
+    "Lead Umpire",
+    "Assistant Umpire",
+]
+
 intents = discord.Intents.default()
 intents.members = True
 intents.reactions = True
@@ -76,6 +81,15 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 
     guild = client.get_guild(payload.guild_id)
     letter_channel_obj = [c for c in guild.channels if c.name == LETTER_CHANNEL][0]
+
+    # check guild
+    if int(payload.guild_id) != int(HSKUCW):
+        return
+
+    # check for apropriate roles
+    user = guild.get_member(payload.user_id)
+    if user.top_role.name not in ADMIN_ROLES:
+        return
 
     await ord.handle_reaction(
         payload,
