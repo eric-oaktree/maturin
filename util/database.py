@@ -231,12 +231,26 @@ def get_orders(
             timestamp,
             turn,
             oq.user_id as user_id,
-            oq.role_id as role_id
+            oq.role_id as role_id,
+            case when os.status is null then 'Incomplete' else os.status end as status
         from orders_queue oq
         join users u on oq.user_id = u.user_id
         join roles r on oq.role_id = r.role_id
+        left join order_status os on oq.order_id = os.order_id
         where 1=1
             and turn = ?
+        group by
+            oq.order_id,
+            case when u.nick = 'None' then u.name else u.nick end,
+            r.name,
+            order_type,
+            order_scope,
+            order_text,
+            timestamp,
+            turn,
+            oq.user_id,
+            oq.role_id,
+            case when os.status is null then 'Incomplete' else os.status end
     """
     res = get_sql(
         sql2,
