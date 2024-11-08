@@ -67,6 +67,12 @@ TABLES = {
         "timestamp int",
         "turn int",
     ],
+    "order_status_table": [
+        "order_id int",
+        "user_id varchar",
+        "status varchar",
+        "time int",
+    ],
 }
 
 TABLES_ON = {
@@ -211,44 +217,74 @@ def create_user_inbox(id, personal_inbox_id, personal_inbox_name):
     )
 
 
-def get_orders(turn, order_id=None, user_id=None, role_id=None):
-    sql = """
-        select
-            order_id,
-            user_id,
-            role_id,
-            order_type,
-            order_scope,
-            order_text,
-            timestamp,
-            turn
-        from orders_queue
-        where 1=1 
-            and (
-                (user_id = ? and order_scope = 'user')
-                or (role_id = ? and order_scope = 'role')
-                or (order_id = ? and (user_id = ? or (role_id = ? and order_scope = 'role')))
-                ) 
-            and turn = ?
-    """
+def get_orders(
+    turn: int,
+):
     sql2 = """
         select 
-            order_id,
-            user_id,
-            role_id,
+            oq.order_id,
+            case when u.nick = 'None' then u.name else u.nick end as username,
+            r.name as role,
             order_type,
             order_scope,
             order_text,
             timestamp,
-            turn
-        from orders_queue
+            turn,
+            oq.user_id as user_id,
+            oq.role_id as role_id,
+            case when os.status is null then 'Incomplete' else os.status end as status
+        from orders_queue oq
+        join users u on oq.user_id = u.user_id
+        join roles r on oq.role_id = r.role_id
+        left join order_status os on oq.order_id = os.order_id
         where 1=1
             and turn = ?
+        group by
+            oq.order_id,
+            case when u.nick = 'None' then u.name else u.nick end,
+            r.name,
+            order_type,
+            order_scope,
+            order_text,
+            timestamp,
+            turn,
+            oq.user_id,
+            oq.role_id,
+            case when os.status is null then 'Incomplete' else os.status end
     """
     res = get_sql(
         sql2,
         params=[
             turn,
+        ],
+    )
+
+    return res
+
+
+def get_order_by_id(order_id: int):
+    sql2 = """
+            select 
+                oq.order_id,
+                case when u.nick = 'None' then u.name else u.nick end as username,
+                r.name as role,
+                order_type,
+                order_scope,
+                order_text,
+                timestamp,
+                turn,
+                oq.user_id as user_id,
+                oq.role_id as role_id
+            from orders_queue oq
+            join users u on oq.user_id = u.user_id
+            join roles r on oq.role_id = r.role_id
+            where 1=1
+                and oq.order_id = ?
+        """
+    res = get_sql(
+        sql2,
+        params=[
+            order_id,
         ],
     )
 
@@ -387,9 +423,47 @@ def sync_all_tables():
         )
 
 
+async def sync_orders():
+    conn = connect_db()
+    cur = conn.cursor()
+
+    # TODO - this looks for a specific target table in the remote database. Should be configurable and documented
+    cur.execute("select max(order_id) from orders_order")
+
+    mx = cur.fetchone()[0]
+    if mx is None:
+        mx = 0
+    data = CONN.sql(f"select * from orders_queue where order_id > {mx} ").fetchall()
+    print("syncing", len(data), "orders")
+    cur.execute("BEGIN")
+    # create tmp table
+    cur.execute(f"create table tmp_orders as select * from orders_order where 1=0")
+
+    # load data
+    execute_values(
+        cur,
+        "insert into tmp_orders (order_id,user_id,role_id,order_type,order_scope,order_text,timestamp,turn) values %s",
+        data,
+    )
+
+    # upsert
+    sql = f"""
+            INSERT INTO orders_order (order_id,user_id,role_id,order_type,order_scope,order_text,timestamp,turn)
+            SELECT order_id,user_id,role_id,order_type,order_scope,order_text,timestamp,turn
+            FROM tmp_orders
+            ON CONFLICT (order_id) DO NOTHING
+        """
+    cur.execute(sql)
+
+    # delete temp table
+    cur.execute(f"drop table tmp_orders")
+    conn.commit()
+
+
 def sync_messages():
     conn = connect_db()
     cur = conn.cursor()
+    # TODO - this looks for a specific target table in the remote database. Should be configurable and documented
     cur.execute("select max(time) from diplo_message")
     mx = cur.fetchone()[0]
     if mx is None:
@@ -505,6 +579,7 @@ def initialize():
         (TABLES["active_roles_table"], "active_roles"),
         (TABLES["orders_queue_table"], "orders_queue"),
         (TABLES["spy_tokens_table"], "spy_tokens"),
+        (TABLES["order_status_table"], "order_status"),
     ):
         create_table(name, table)
 

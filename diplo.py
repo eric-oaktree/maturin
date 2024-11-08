@@ -7,12 +7,16 @@ import pandas as pd
 from discord import app_commands
 from discord.utils import get
 
-from util import database
+from util import database, tools
 
 load_dotenv()
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
 HSKUCW = int(os.getenv("HSKUCW"))
 
+if os.getenv("PG_HOST") is None:
+    DB = False
+else:
+    DB = True
 
 LETTER_CHANNEL = os.getenv("LETTER_CHANNEL")
 DIPLO_UMPIRE_ROLE = os.getenv("DIPLO_UMPIRE_ROLE")
@@ -64,15 +68,7 @@ async def send_letter(
     await interaction.response.defer(ephemeral=True)
 
     # letter channel is the base channel that all the threads will be under.
-    letter_channel_id = None
-    # check to make sure that a letter channel exists
-    for channel in interaction.guild.channels:
-        if channel.name == LETTER_CHANNEL:
-            letter_channel_id = channel.id
-
-    if letter_channel_id is None:
-        raise ValueError
-    letter_channel = interaction.guild.get_channel(int(letter_channel_id))
+    letter_channel = tools.get_channel_obj(interaction, LETTER_CHANNEL)
 
     # checks the message timelimits. #TODO - make these conifgurable
     if isinstance(recipient, discord.Role):
@@ -278,7 +274,8 @@ async def send_letter(
             ephemeral=True,
         )
 
-        database.sync_messages()
+        if DB:
+            database.sync_messages()
 
     ### ROLES WORKFLOW
     elif isinstance(recipient, discord.Role):
@@ -419,4 +416,5 @@ async def send_letter(
             ephemeral=True,
         )
 
-        database.sync_messages()
+        if DB:
+            database.sync_messages()

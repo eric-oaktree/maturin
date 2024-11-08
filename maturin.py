@@ -6,10 +6,11 @@ from dotenv import load_dotenv
 from discord.utils import get
 
 # from testing import testing
-from diplo import diplo
+from diplo import diplo, LETTER_CHANNEL
 from loans import loans
 from util import database
 from orders import orders
+import orders as ord
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -18,8 +19,16 @@ HSKUCW = int(os.getenv("HSKUCW"))
 
 LETTER_CHANNEL = os.getenv("LETTER_CHANNEL")
 
+BOT_ID = int(os.getenv("BOT_ID"))
+
+ADMIN_ROLES = [
+    "Lead Umpire",
+    "Assistant Umpire",
+]
 
 intents = discord.Intents.default()
+intents.members = True
+intents.reactions = True
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
@@ -58,9 +67,31 @@ async def sync_database(interaction, sync_roles: bool):
             await database.get_active_roles(guild=client.get_guild(int(HSKUCW)))
         database.sync_all_tables()
         database.sync_messages()
+        await database.sync_orders()
         await interaction.followup.send("Database synced successfully.", ephemeral=True)
     else:
         await interaction.response.send_message(f"Permission Denied", ephemeral=True)
+
+
+@client.event
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
+    # check that the message is from the bot
+    if payload.message_author_id != BOT_ID:
+        return
+
+    guild = client.get_guild(payload.guild_id)
+    letter_channel_obj = [c for c in guild.channels if c.name == LETTER_CHANNEL][0]
+
+    # check guild
+    if int(payload.guild_id) != int(HSKUCW):
+        return
+
+    # check for apropriate roles
+    user = guild.get_member(payload.user_id)
+    if user.top_role.name not in ADMIN_ROLES:
+        return
+
+    await ord.handle_reaction(payload, letter_channel_obj, guild)
 
 
 tree.add_command(diplo)
