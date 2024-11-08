@@ -246,7 +246,7 @@ async def handle_reaction(
                 order_id,
                 payload.user_id,
                 "Complete",
-                datetime.now().timestamp(),
+                int(datetime.now().timestamp()),
             ],
         )
         # send complete event
