@@ -241,7 +241,7 @@ async def handle_reaction(
         odf = database.get_order_by_id(int(order_id))
         # make order complete entry in order status table
         database.execute_sql(
-            "insert into orders_status (order_id, user_id, status, time) values (?, ?, ?, ?)",
+            "insert into order_status (order_id, user_id, status, time) values (?, ?, ?, ?)",
             params=[
                 order_id,
                 payload.user_id,
