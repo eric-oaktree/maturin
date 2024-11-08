@@ -157,16 +157,23 @@ async def delete_order(interaction: discord.Interaction, order_id: int, turn: in
     order = orders_df.iloc[0]
 
     if order["user_id"] == str(interaction.user.id):
-        database.execute_sql(
-            f"delete from orders_queue where order_id=? and user_id=? and turn = ?",
-            params=[int(order["order_id"]), str(interaction.user.id), int(turn)],
-            commit=True,
-        )
+        if order["status"] == "Incomplete":
+            database.execute_sql(
+                f"delete from orders_queue where order_id=? and user_id=? and turn = ?",
+                params=[int(order["order_id"]), str(interaction.user.id), int(turn)],
+                commit=True,
+            )
 
-        await interaction.followup.send(
-            f"Deleted order id {order['order_id']}", ephemeral=True
-        )
-        return
+            await interaction.followup.send(
+                f"Deleted order id {order['order_id']}", ephemeral=True
+            )
+            return
+
+        else:
+            await interaction.followup.send(
+                f"You cannot delete a completed order", ephemeral=True
+            )
+            return
 
     else:
         await interaction.followup.send(
