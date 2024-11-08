@@ -91,10 +91,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if user.top_role.name not in ADMIN_ROLES:
         return
 
-    await ord.handle_reaction(
-        payload,
-        letter_channel_obj,
-    )
+    await ord.handle_reaction(payload, letter_channel_obj, guild)
 
 
 tree.add_command(diplo)
