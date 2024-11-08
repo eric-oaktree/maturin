@@ -565,6 +565,7 @@ def initialize():
         (TABLES["active_roles_table"], "active_roles"),
         (TABLES["orders_queue_table"], "orders_queue"),
         (TABLES["spy_tokens_table"], "spy_tokens"),
+        (TABLES["order_status_table"], "order_status"),
     ):
         create_table(name, table)
 
