@@ -71,7 +71,7 @@ TABLES = {
         "order_id int",
         "user_id varchar",
         "status varchar",
-        "time int",
+        "time timestamp",
     ],
 }
 
