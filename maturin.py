@@ -30,10 +30,6 @@ tree = app_commands.CommandTree(client)
 database.initialize()
 
 
-guild = client.get_guild(HSKUCW)
-letter_channel_obj = [c for c in guild.channels if c.name == LETTER_CHANNEL][0]
-
-
 @client.event
 async def on_ready():
     await tree.sync(guild=discord.Object(id=PERSONAL))
@@ -77,6 +73,9 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     # check that the message is from the bot
     if payload.message_author_id != BOT_ID:
         return
+
+    guild = client.get_guild(payload.guild_id)
+    letter_channel_obj = [c for c in guild.channels if c.name == LETTER_CHANNEL][0]
 
     await ord.handle_reaction(
         payload,
