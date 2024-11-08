@@ -224,13 +224,19 @@ async def print_orders(interaction: discord.Interaction, turn: int):
 
 
 # TODO - Add a system that will mark the orders as complete in the database using an emoji
-async def handle_reaction(payload: discord.RawReactionActionEvent, letter_channel):
+async def handle_reaction(
+    payload: discord.RawReactionActionEvent,
+    letter_channel: discord.TextChannel,
+    guild: discord.Guild,
+):
 
     # check for message content
-    message = discord.Object(id=payload.message_id)
+
+    react_channel = guild.get_channel(payload.channel_id)
+    message = await react_channel.fetch_message(payload.message_id)
     if payload.emoji.name == "✅":
         # grab order id
-        order_id = message.content.split("|").strip()[0]
+        order_id = message.content.split("|")[0].strip()
         # grab order from db
         odf = database.get_order_by_id(int(order_id))
         # make order complete entry in order status table
