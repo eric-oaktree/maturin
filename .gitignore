@@ -1,2 +1,2 @@
-.env
+*.env
 hsku_local.duckdb
