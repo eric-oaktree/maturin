@@ -11,3 +11,9 @@ def get_channel_obj(
 
     print("Could not find channel", channel_name)
     return None
+
+
+ADMIN_ROLES = [
+    "Lead Umpire",
+    "Assistant Umpire",
+]

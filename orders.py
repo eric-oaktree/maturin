@@ -1,16 +1,15 @@
 import os
 from datetime import datetime
-from dotenv import load_dotenv
+from typing import Literal
 
 import discord
-import pandas as pd
 from discord import app_commands
 from discord.utils import get
+from dotenv import load_dotenv
 
 from util import database, tools
 from util.database import create_order, get_orders
-from typing import Literal
-from discord.utils import get
+from util.tools import ADMIN_ROLES
 
 load_dotenv()
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
@@ -119,7 +118,7 @@ async def view_orders(interaction: discord.Interaction, turn: int):
     # return orders
     message = []
     for i, order in orders_df.iterrows():
-        line = construct_line(order)
+        line = construct_line(order, interaction)
         message.append(line)
 
     message = "\n".join(message)
@@ -127,8 +126,8 @@ async def view_orders(interaction: discord.Interaction, turn: int):
     await interaction.followup.send(message, ephemeral=True)
 
 
-def construct_line(order):
-    line = f"{order.get('order_id')} | {order.get('username')} | {order.get('role')} | {order.get('order_type')} | {order.get('order_scope')} | {order.get('order_text')} | <t:{order.get('timestamp')}:f> | {order.get('status')}"
+def construct_line(order, interaction: discord.Interaction):
+    line = f"{order.get('order_id')} | {interaction.guild.get_member(int(order.get('user_id'))).mention} | {interaction.guild.get_member(int(order.get('role_id'))).mention} | {order.get('order_type')} | {order.get('order_scope')} | {order.get('order_text')} | <t:{order.get('timestamp')}:f> | {order.get('status')}"
     return line
 
 
@@ -207,29 +206,30 @@ async def print_orders(interaction: discord.Interaction, turn: int):
         await interaction.followup.send(f"You are not an Admin...", ephemeral=True)
         return
 
-    # grab all orders for turn
-    orders_df = get_orders(turn)
+    else:
+        # grab all orders for turn
+        orders_df = get_orders(turn)
 
-    # post a turn message to the econ, orders, moves channels
-    for channel in channels.values():
-        await channel.send(f"## Turn {turn}")
-
-    # iterate through roles and post to a channel
-    roles = list(orders_df["role_id"].unique())
-    for role in roles:
-        # filter df
-        tmp_df = orders_df[orders_df["role_id"] == role]
-        rname = list(tmp_df["role"].unique())[0]
-
+        # post a turn message to the econ, orders, moves channels
         for channel in channels.values():
-            await channel.send(f"### {rname}")
+            await channel.send(f"## Turn {turn}")
 
-        for i, record in tmp_df.iterrows():
-            msg = construct_line(record)
-            await channels[record["order_type"]].send(msg)
+        # iterate through roles and post to a channel
+        roles = list(orders_df["role_id"].unique())
+        for role in roles:
+            # filter df
+            tmp_df = orders_df[orders_df["role_id"] == role]
+            rname = list(tmp_df["role"].unique())[0]
 
-    await interaction.followup.send(f"Orders Printed", ephemeral=True)
-    return
+            for channel in channels.values():
+                await channel.send(f"### {rname}")
+
+            for i, record in tmp_df.iterrows():
+                msg = construct_line(record, interaction)
+                await channels[record["order_type"]].send(msg)
+
+        await interaction.followup.send(f"Orders Printed", ephemeral=True)
+        return
 
 
 async def handle_reaction(

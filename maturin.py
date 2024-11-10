@@ -3,28 +3,23 @@ import os
 import discord
 from discord import app_commands
 from dotenv import load_dotenv
-from discord.utils import get
+
+import orders as ord
 
 # from testing import testing
 from diplo import diplo, LETTER_CHANNEL
 from loans import loans
-from util import database
 from orders import orders
-import orders as ord
+from util import database
+from util.tools import ADMIN_ROLES
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
 HSKUCW = int(os.getenv("HSKUCW"))
 
-LETTER_CHANNEL = os.getenv("LETTER_CHANNEL")
-
 BOT_ID = int(os.getenv("BOT_ID"))
 
-ADMIN_ROLES = [
-    "Lead Umpire",
-    "Assistant Umpire",
-]
 
 intents = discord.Intents.default()
 intents.members = True
