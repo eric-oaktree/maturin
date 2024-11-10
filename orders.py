@@ -118,7 +118,7 @@ async def view_orders(interaction: discord.Interaction, turn: int):
     # return orders
     message = []
     for i, order in orders_df.iterrows():
-        line = construct_line(order, interaction)
+        line = await construct_line(order, interaction)
         message.append(line)
 
     message = "\n".join(message)
@@ -126,8 +126,12 @@ async def view_orders(interaction: discord.Interaction, turn: int):
     await interaction.followup.send(message, ephemeral=True)
 
 
-def construct_line(order, interaction: discord.Interaction):
-    line = f"{order.get('order_id')} | {interaction.guild.get_member(int(order.get('user_id'))).mention} | {interaction.guild.get_member(int(order.get('role_id'))).mention} | {order.get('order_type')} | {order.get('order_scope')} | {order.get('order_text')} | <t:{order.get('timestamp')}:f> | {order.get('status')}"
+async def construct_line(order, interaction: discord.Interaction):
+    print(order.get("user_id"))
+    print(order.get("role_id"))
+    u_obj = await interaction.guild.fetch_member(int(order.get("user_id")))
+    r_obj = await interaction.guild.fetch_member(int(order.get("role_id")))
+    line = f"{order.get('order_id')} | {u_obj.mention} | {r_obj.mention} | {order.get('order_type')} | {order.get('order_scope')} | {order.get('order_text')} | <t:{order.get('timestamp')}:f> | {order.get('status')}"
     return line
 
 
@@ -225,7 +229,7 @@ async def print_orders(interaction: discord.Interaction, turn: int):
                 await channel.send(f"### {rname}")
 
             for i, record in tmp_df.iterrows():
-                msg = construct_line(record, interaction)
+                msg = await construct_line(record, interaction)
                 await channels[record["order_type"]].send(msg)
 
         await interaction.followup.send(f"Orders Printed", ephemeral=True)
