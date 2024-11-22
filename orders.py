@@ -131,10 +131,17 @@ async def view_orders(interaction: discord.Interaction, turn: int):
 
 
 async def construct_line(order, interaction: discord.Interaction):
-    u_obj = await interaction.guild.fetch_member(int(order.get("user_id")))
+    try:
+        u_obj = await interaction.guild.fetch_member(int(order.get("user_id")))
+    except:
+        u_obj = None
+
+    if u_obj is not None:
+        u_obj = u_obj.mention
+
     r_obj = interaction.guild.get_role(int(order.get("role_id")))
 
-    line = f"{order.get('order_id')} | {u_obj.mention} | {r_obj.mention} | {order.get('order_type')} | {order.get('order_scope')} | {order.get('order_text')} | <t:{order.get('timestamp')}:f> | {order.get('status')}"
+    line = f"{order.get('order_id')} | {u_obj} | {r_obj.mention} | {order.get('order_type')} | {order.get('order_scope')} | {order.get('order_text')} | <t:{order.get('timestamp')}:f> | {order.get('status')}"
     return line
 
 
