@@ -348,7 +348,7 @@ async def handle_reaction(
 
 @orders.command(
     name="admin_view_orders",
-    description="Allows admins to search for and view all orders. Optional arguments are applied as AND. You don't want to query the whole turn.",
+    description="Allows admins to search for and view all orders",
 )
 @app_commands.describe(
     turn="The turn number you want to see the orders for",
