@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from util import database, tools
 from util.database import create_order, get_orders
 from util.tools import ADMIN_ROLES
+from diplo import LETTER_CHANNEL
 
 load_dotenv()
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
@@ -19,6 +20,8 @@ ECON_CHANNEL = str(os.getenv("ECON_CHANNEL"))
 MOVE_CHANNEL = str(os.getenv("MOVE_CHANNEL"))
 MIL_CHANNEL = str(os.getenv("MIL_CHANNEL"))
 
+DIPLO_UMPIRE_ROLE = os.getenv("DIPLO_UMPIRE_ROLE")
+SPECTATOR_ROLE = os.getenv("SPECTATOR_ROLE")
 
 orders = app_commands.Group(
     name="orders",
@@ -42,7 +45,13 @@ async def issue_order(
     order_as: Literal["User", "Role"] = "User",
 ):
     # defer in case db is slow
-    await interaction.response.defer(ephemeral=True)
+    if order_type == "Military":
+        await interaction.response.defer(ephemeral=False)
+    else:
+        await interaction.response.defer(ephemeral=True)
+
+    u_role = get(interaction.guild.roles, name=DIPLO_UMPIRE_ROLE)
+    s_role = get(interaction.guild.roles, name=SPECTATOR_ROLE)
 
     # check for length
     if len(order) > 1900:
@@ -63,6 +72,47 @@ async def issue_order(
     if order_type == "Econ" and order_as == "User":
         order_as = "Role"
 
+    udf = database.user_lookup(str(interaction.user.id))
+    if udf.shape[0] == 0:
+        # make new user
+        database.create_user(
+            interaction.user.id, interaction.user.name, interaction.user.nick
+        )
+
+    uth = database.get_user_inbox(str(interaction.user.id))
+    if uth.shape[0] > 0:
+        uth = uth.iloc[0].to_dict()
+    else:
+        uth = {"personal_inbox_id": 1}
+
+    letter_channel = [
+        c for c in interaction.guild.channels if c.name == LETTER_CHANNEL
+    ][0]
+
+    thread = letter_channel.get_thread(int(uth["personal_inbox_id"]))
+    if thread is None:
+        # make new thread
+        if udf["nick"] == "None":
+            thread_name = f"{udf['name']} Personal Letters"
+        else:
+            thread_name = f"{udf['nick']} Personal Letters"
+
+        # if thread does not exist create thread
+
+        thread = await letter_channel.create_thread(
+            name=thread_name,
+            message=None,
+            invitable=False,
+        )
+        await thread.send(
+            f"{u_role.mention} {s_role.mention} {interaction.user.mention}"
+        )
+
+        try:
+            database.create_user_inbox(str(udf["user_id"]), str(thread.id), thread.name)
+        except:
+            database.update_user_inbox(str(udf["user_id"]), str(thread.id), thread.name)
+
     # get top role
     trol = interaction.user.top_role
 
@@ -81,15 +131,22 @@ async def issue_order(
         Issued {order_as} {order_type} order for turn {turn}
         {order}
     """
-    await interaction.followup.send(
-        msg,
-        ephemeral=True,
-    )
+
+    if order_type == "Military":
+        await interaction.followup.send(
+            msg,
+            ephemeral=False,
+        )
+    else:
+        await interaction.followup.send(
+            msg,
+            ephemeral=True,
+        )
 
 
 @orders.command(name="view_orders", description="view orders")
 @app_commands.describe(
-    turn="The turn number you want the order to be in effect for",
+    turn="The turn number you want to see the orders for",
 )
 async def view_orders(interaction: discord.Interaction, turn: int):
     # defer in case db is slow
@@ -223,6 +280,7 @@ async def print_orders(interaction: discord.Interaction, turn: int):
     else:
         # grab all orders for turn
         orders_df = get_orders(turn)
+        orders_df = orders_df.loc[orders_df["status"] == "Incomplete"]
 
         # post a turn message to the econ, orders, moves channels
         for channel in channels.values():
@@ -286,3 +344,183 @@ async def handle_reaction(
         await thread.send(
             f"Order Number {order_id}, turn {odf.iloc[0]['turn']} is complete. \n {odf.iloc[0]['order_text']}"
         )
+
+
+@orders.command(
+    name="admin_view_orders",
+    description="Allows admins to search for and view all orders. Optional arguments are applied as AND. You don't want to query the whole turn.",
+)
+@app_commands.describe(
+    turn="The turn number you want to see the orders for",
+)
+async def admin_view_orders(
+    interaction: discord.Interaction,
+    turn: int,
+    member: discord.Member = None,
+    role: discord.Role = None,
+    order_type: Literal["Move", "Military", "Econ"] = None,
+    order_id: int = None,
+):
+    # defer in case db is slow
+    await interaction.response.defer(ephemeral=True)
+
+    # get top role
+    trol = interaction.user.top_role
+
+    if trol.name not in ADMIN_ROLES:
+        await interaction.followup.send("Go Away", ephemeral=True)
+        return
+
+    # get orders
+    orders_df = get_orders(turn)
+
+    if orders_df.empty:
+        await interaction.followup.send("No Orders Found for that turn", ephemeral=True)
+        return
+
+    # filter DF for orders
+    if order_type is not None:
+        orders_df = orders_df[orders_df["order_type"] == order_type]
+
+    if member is not None:
+        orders_df = orders_df[orders_df["user_id"] == str(member.id)]
+
+    if role is not None:
+        orders_df = orders_df[orders_df["role_id"] == str(role.id)]
+
+    if order_id is not None:
+        orders_df = orders_df[orders_df["order_id"] == int(order_id)]
+
+    if orders_df.empty:
+        await interaction.followup.send(
+            "No Orders Found for that Query", ephemeral=True
+        )
+        return
+
+    if orders_df.shape[0] > 10:
+        await interaction.followup.send(
+            "Woah there cowboy, that's a lot of orders. Add some filters and try again.",
+            ephemeral=True,
+        )
+        return
+
+    # return orders
+    message = []
+    for i, order in orders_df.iterrows():
+        line = await construct_line(order, interaction)
+        message.append(line)
+
+    message = "\n".join(message)
+
+    await interaction.followup.send(message, ephemeral=True)
+
+
+@orders.command(
+    name="mid_turn_order",
+    description="Promotes an order to be executed mid turn. Econ Only. No takebacksies.",
+)
+@app_commands.describe(
+    order_id="The order ID to be executed",
+)
+async def mid_turn_order(interaction: discord.Interaction, turn: int, order_id: int):
+    # defer in case db is slow
+    await interaction.response.defer(ephemeral=True)
+
+    # get orders
+    orders_df = get_orders(turn)
+
+    if orders_df.empty:
+        await interaction.followup.send("No Orders Found for that turn", ephemeral=True)
+        return
+
+    orders_df = orders_df[orders_df["order_id"] == int(order_id)]
+
+    if str(interaction.user.id) != orders_df.iloc[0]["user_id"]:
+        await interaction.followup.send(
+            "Stop it. That is not your order.", ephemeral=True
+        )
+        return
+
+    channels = {
+        "Econ": tools.get_channel_obj(interaction, ECON_CHANNEL),
+        "Military": tools.get_channel_obj(interaction, MIL_CHANNEL),
+        "Move": tools.get_channel_obj(interaction, MOVE_CHANNEL),
+    }
+
+    for i, record in orders_df.iterrows():
+        msg = await construct_line(record, interaction)
+        await channels[record["order_type"]].send(msg)
+
+    await interaction.followup.send("Order Expedited", ephemeral=True)
+    return
+
+
+@orders.command(
+    name="reject_order",
+    description="Allows admin to reject and order with a comment",
+)
+@app_commands.describe(
+    turn="The turn number you want to see the orders for",
+    order_id="The order ID to be rejected",
+)
+async def reject_order(
+    interaction: discord.Interaction, turn: int, order_id: int, message: str = None
+):
+    # defer in case db is slow
+    await interaction.response.defer(ephemeral=True)
+
+    # get top role
+    trol = interaction.user.top_role
+
+    if trol.name not in ADMIN_ROLES:
+        await interaction.followup.send(
+            "403 Error. This attempt has been logged.", ephemeral=True
+        )
+        return
+
+    # get orders
+    orders_df = get_orders(turn)
+
+    if orders_df.empty:
+        await interaction.followup.send("No Orders Found for that turn", ephemeral=True)
+        return
+
+    odf = database.get_order_by_id(int(order_id))
+
+    if orders_df.empty:
+        await interaction.followup.send(
+            "No Orders Found for that Query", ephemeral=True
+        )
+        return
+
+    # send complete event
+    if odf.iloc[0]["order_scope"] == "Role":
+        t_id = odf.iloc[0]["role_id"]
+    else:
+        t_id = odf.iloc[0]["user_id"]
+
+    inbox_df = database.get_user_inbox(t_id)
+    if inbox_df.empty:
+        print("No thread for that id", t_id)
+        return None
+
+    database.execute_sql(
+        "insert into order_status (order_id, user_id, status, time) values (?, ?, ?, ?)",
+        params=[
+            order_id,
+            str(interaction.user.id),
+            "Rejected",
+            int(datetime.now().timestamp()),
+        ],
+    )
+
+    letter_channel = [
+        c for c in interaction.guild.channels if c.name == LETTER_CHANNEL
+    ][0]
+
+    thread = letter_channel.get_thread(int(inbox_df["personal_inbox_id"].iloc[0]))
+    await thread.send(
+        f"Order Number {order_id}, turn {odf.iloc[0]['turn']} has been rejected with the comment: \n {message}\n {odf.iloc[0]['order_text']}"
+    )
+
+    await interaction.followup.send("Order rejected", ephemeral=True)
