@@ -435,6 +435,10 @@ async def mid_turn_order(interaction: discord.Interaction, turn: int, order_id: 
 
     orders_df = orders_df[orders_df["order_id"] == int(order_id)]
 
+    if orders_df.iloc[0]["order_type"] != "Econ":
+        await interaction.followup.send("Econ Orders Only.", ephemeral=True)
+        return
+
     if str(interaction.user.id) != orders_df.iloc[0]["user_id"]:
         await interaction.followup.send(
             "Stop it. That is not your order.", ephemeral=True
