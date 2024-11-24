@@ -461,7 +461,7 @@ async def mid_turn_order(interaction: discord.Interaction, turn: int, order_id: 
 
 @orders.command(
     name="reject_order",
-    description="Allows admin to reject and order with a comment",
+    description="Allows admin to reject an order with a comment",
 )
 @app_commands.describe(
     turn="The turn number you want to see the orders for",

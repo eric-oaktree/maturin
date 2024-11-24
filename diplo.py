@@ -388,7 +388,7 @@ async def send_letter(
         thread = letter_channel.get_thread(int(rth["personal_inbox_id"]))
 
         if thread is None:
-            interaction.followup.send(
+            await interaction.followup.send(
                 f"That receipient does not exist? Ask for help. \n {message}",
                 ephemeral=True,
             )
