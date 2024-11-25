@@ -1,6 +1,6 @@
 import discord
 import os
-import database
+from util import database
 from discord.utils import get
 
 LETTER_CHANNEL = os.getenv("LETTER_CHANNEL")
