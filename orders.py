@@ -71,7 +71,7 @@ async def issue_order(
     if order_type == "Econ" and order_as == "User":
         order_as = "Role"
 
-    thread = tools.get_or_create_user_thread(interaction)
+    thread = await tools.get_or_create_user_thread(interaction)
 
     # get top role
     trol = interaction.user.top_role

@@ -143,7 +143,7 @@ async def send_letter(
         udf = udf.iloc[0].to_dict()
 
         # look for thread
-        thread = get_or_create_user_thread(interaction)
+        thread = await get_or_create_user_thread(interaction)
 
         # resolve recipient name
         if recipient.nick is None:
