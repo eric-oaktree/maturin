@@ -8,6 +8,7 @@ from discord import app_commands
 from discord.utils import get
 
 from util import database, tools
+from util.tools import LETTER_CHANNEL, get_or_create_user_thread
 
 load_dotenv()
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
@@ -18,7 +19,6 @@ if os.getenv("PG_HOST") is None:
 else:
     DB = True
 
-LETTER_CHANNEL = os.getenv("LETTER_CHANNEL")
 DIPLO_UMPIRE_ROLE = os.getenv("DIPLO_UMPIRE_ROLE")
 SPECTATOR_ROLE = os.getenv("SPECTATOR_ROLE")
 DIPLOMAT_ROLE = os.getenv("DIPLOMAT_ROLE")
@@ -143,44 +143,7 @@ async def send_letter(
         udf = udf.iloc[0].to_dict()
 
         # look for thread
-        uth = database.get_user_inbox(str(interaction.user.id))
-        if uth.shape[0] > 0:
-            uth = uth.iloc[0].to_dict()
-        else:
-            uth = {"personal_inbox_id": 1}
-
-        thread = letter_channel.get_thread(int(uth["personal_inbox_id"]))
-        if thread is None:
-            # make new thread
-            if udf["nick"] == "None":
-                thread_name = f"{udf['name']} Personal Letters"
-            else:
-                thread_name = f"{udf['nick']} Personal Letters"
-
-            # if thread does not exist create thread
-
-            thread = await letter_channel.create_thread(
-                name=thread_name,
-                message=None,
-                invitable=False,
-            )
-            await thread.send(
-                f"{u_role.mention} {s_role.mention} {interaction.user.mention}"
-            )
-
-            try:
-                database.create_user_inbox(
-                    str(udf["user_id"]), str(thread.id), thread.name
-                )
-            except:
-                database.update_user_inbox(
-                    str(udf["user_id"]), str(thread.id), thread.name
-                )
-            uth = {
-                "user_id": str(interaction.user.id),
-                "personal_inbox_id": str(thread.id),
-                "personal_inbox_name": thread.name,
-            }
+        thread = get_or_create_user_thread(interaction)
 
         # resolve recipient name
         if recipient.nick is None:
@@ -242,11 +205,6 @@ async def send_letter(
                 database.update_user_inbox(
                     str(rdf["user_id"]), str(thread.id), thread.name
                 )
-            rth = {
-                "user_id": str(rdf["user_id"]),
-                "personal_inbox_id": str(thread.id),
-                "personal_inbox_name": thread.name,
-            }
 
         # resolve sender name
         if interaction.user.nick is None:

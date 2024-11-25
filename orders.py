@@ -9,8 +9,7 @@ from dotenv import load_dotenv
 
 from util import database, tools
 from util.database import create_order, get_orders
-from util.tools import ADMIN_ROLES
-from diplo import LETTER_CHANNEL
+from util.tools import ADMIN_ROLES, LETTER_CHANNEL
 
 load_dotenv()
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
@@ -72,46 +71,7 @@ async def issue_order(
     if order_type == "Econ" and order_as == "User":
         order_as = "Role"
 
-    udf = database.user_lookup(str(interaction.user.id))
-    if udf.shape[0] == 0:
-        # make new user
-        database.create_user(
-            interaction.user.id, interaction.user.name, interaction.user.nick
-        )
-
-    uth = database.get_user_inbox(str(interaction.user.id))
-    if uth.shape[0] > 0:
-        uth = uth.iloc[0].to_dict()
-    else:
-        uth = {"personal_inbox_id": 1}
-
-    letter_channel = [
-        c for c in interaction.guild.channels if c.name == LETTER_CHANNEL
-    ][0]
-
-    thread = letter_channel.get_thread(int(uth["personal_inbox_id"]))
-    if thread is None:
-        # make new thread
-        if udf["nick"] == "None":
-            thread_name = f"{udf['name']} Personal Letters"
-        else:
-            thread_name = f"{udf['nick']} Personal Letters"
-
-        # if thread does not exist create thread
-
-        thread = await letter_channel.create_thread(
-            name=thread_name,
-            message=None,
-            invitable=False,
-        )
-        await thread.send(
-            f"{u_role.mention} {s_role.mention} {interaction.user.mention}"
-        )
-
-        try:
-            database.create_user_inbox(str(udf["user_id"]), str(thread.id), thread.name)
-        except:
-            database.update_user_inbox(str(udf["user_id"]), str(thread.id), thread.name)
+    thread = tools.get_or_create_user_thread(interaction)
 
     # get top role
     trol = interaction.user.top_role
@@ -131,6 +91,8 @@ async def issue_order(
         Issued {order_as} {order_type} order for turn {turn}
         {order}
     """
+
+    await thread.send(msg)
 
     if order_type == "Military":
         await interaction.followup.send(
