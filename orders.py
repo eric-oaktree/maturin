@@ -77,7 +77,7 @@ async def issue_order(
     trol = interaction.user.top_role
 
     # create order
-    create_order(
+    order_id = create_order(
         turn=turn,
         order_type=order_type,
         order_text=order,
@@ -88,7 +88,7 @@ async def issue_order(
 
     # return confirmation message
     msg = f"""
-        Issued {order_as} {order_type} order for turn {turn}
+        Issued {order_as} {order_type} order #{order_id} for turn {turn}
         {order}
     """
 

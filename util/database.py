@@ -312,16 +312,17 @@ def get_max_order_pk() -> int:
 
 def create_order(
     order_type, order_text, turn, user_id=None, role_id=None, order_scope=None
-):
+) -> int:
     sql = """
         insert into orders_queue (order_id, user_id, role_id, order_type, order_scope, order_text, timestamp, turn)
         values (?, ?, ?, ?, ?, ?, ?, ?)
     """
+    mxpk = get_max_order_pk()
     execute_sql(
         sql,
         commit=True,
         params=[
-            int(get_max_order_pk()) + 1,
+            int(mxpk) + 1,
             str(user_id),
             str(role_id),
             str(order_type),
@@ -331,6 +332,7 @@ def create_order(
             int(turn),
         ],
     )
+    return int(mxpk)
 
 
 def update_user_inbox(id, personal_inbox_id, personal_inbox_name):
