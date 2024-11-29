@@ -36,6 +36,9 @@ async def get_or_create_user_thread(interaction: discord.Interaction):
         database.create_user(
             interaction.user.id, interaction.user.name, interaction.user.nick
         )
+        udf = database.user_lookup(str(interaction.user.id))
+
+    udf = udf.iloc[0].to_dict()
 
     uth = database.get_user_inbox(str(interaction.user.id))
     if uth.shape[0] > 0:
