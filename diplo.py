@@ -34,6 +34,10 @@ diplo = app_commands.Group(
 )
 
 
+@diplo.command(
+    name="re_ping",
+    description="re-ping yourself in your threads.",
+)
 async def re_ping(interaction: discord.Interaction):
     await interaction.response.defer(ephemeral=True)
 
