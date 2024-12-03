@@ -9,6 +9,7 @@ from discord.utils import get
 
 from util import database, tools
 from util.tools import LETTER_CHANNEL, get_or_create_user_thread
+from typing import Literal
 
 load_dotenv()
 PERSONAL = int(os.getenv("PERSONAL_SERVER"))
@@ -38,26 +39,30 @@ diplo = app_commands.Group(
     name="re_ping",
     description="re-ping yourself in your threads.",
 )
-async def re_ping(interaction: discord.Interaction):
+@app_commands.describe(
+    team="ping your team thread as well",
+)
+async def re_ping(interaction: discord.Interaction, team: Literal["Yes", "No"] = "No"):
     await interaction.response.defer(ephemeral=True)
 
     thread = await get_or_create_user_thread(interaction)
     await thread.send(f"{interaction.user.mention}")
 
-    uth = database.get_user_inbox(str(interaction.user.top_role.id))
-    if uth.shape[0] == 0:
-        await interaction.followup.send(
-            f"Re-pinged you to your personal thread, but I can't find a role thread",
-            ephemeral=True,
-        )
-        return
+    if team == "Yes":
+        uth = database.get_user_inbox(str(interaction.user.top_role.id))
+        if uth.shape[0] == 0:
+            await interaction.followup.send(
+                f"Re-pinged you to your personal thread, but I can't find a role thread",
+                ephemeral=True,
+            )
+            return
 
-    if isinstance(uth, pd.DataFrame):
-        uth = uth.iloc[0].to_dict()
+        if isinstance(uth, pd.DataFrame):
+            uth = uth.iloc[0].to_dict()
 
-    letter_channel = tools.get_channel_obj(interaction, LETTER_CHANNEL)
-    thread = letter_channel.get_thread(int(uth["personal_inbox_id"]))
-    await thread.send(f"{interaction.user.top_role.mention}")
+        letter_channel = tools.get_channel_obj(interaction, LETTER_CHANNEL)
+        thread = letter_channel.get_thread(int(uth["personal_inbox_id"]))
+        await thread.send(f"{interaction.user.top_role.mention}")
 
     await interaction.followup.send(
         f"Re-pinged you to your threads",
