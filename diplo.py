@@ -41,7 +41,7 @@ diplo = app_commands.Group(
 async def re_ping(interaction: discord.Interaction):
     await interaction.response.defer(ephemeral=True)
 
-    thread = get_or_create_user_thread(interaction)
+    thread = await get_or_create_user_thread(interaction)
     await thread.send(f"{interaction.user.mention}")
 
     uth = database.get_user_inbox(str(interaction.user.top_role.id))
