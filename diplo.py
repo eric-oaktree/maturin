@@ -34,6 +34,33 @@ diplo = app_commands.Group(
 )
 
 
+async def re_ping(interaction: discord.Interaction):
+    await interaction.response.defer(ephemeral=True)
+
+    thread = get_or_create_user_thread(interaction)
+    await thread.send(f"{interaction.user.mention}")
+
+    uth = database.get_user_inbox(str(interaction.user.top_role.id))
+    if uth.shape[0] == 0:
+        await interaction.followup.send(
+            f"Re-pinged you to your personal thread, but I can't find a role thread",
+            ephemeral=True,
+        )
+        return
+
+    if isinstance(uth, pd.DataFrame):
+        uth = uth.iloc[0].to_dict()
+
+    letter_channel = tools.get_channel_obj(interaction, LETTER_CHANNEL)
+    thread = letter_channel.get_thread(int(uth["personal_inbox_id"]))
+    await thread.send(f"{interaction.user.top_role.mention}")
+
+    await interaction.followup.send(
+        f"Re-pinged you to your threads",
+        ephemeral=True,
+    )
+
+
 @diplo.command(
     name="send_letter",
     description="send a letter to another player or state inbox",
