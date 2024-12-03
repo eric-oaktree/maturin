@@ -88,7 +88,7 @@ async def issue_order(
 
     # return confirmation message
     msg = f"""
-        Issued {order_as} {order_type} order #{order_id} for turn {turn}
+        Issued {order_as} {order_type} order #{int(order_id)+1} for turn {turn}
         {order}
     """
 
