@@ -143,6 +143,7 @@ def execute_sql(sql: str, commit: bool = True, params: list = None):
     except Exception as e:  # Catch all exceptions using 'Exception' class
         print(f"An error occurred while executing the SQL query: {str(e)}")
         print("SQL Query:", sql)
+        print(params)
         raise  # Re-raise the exception or handle it as needed
 
     if commit:
