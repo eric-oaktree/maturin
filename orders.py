@@ -52,6 +52,11 @@ async def issue_order(
     u_role = get(interaction.guild.roles, name=DIPLO_UMPIRE_ROLE)
     s_role = get(interaction.guild.roles, name=SPECTATOR_ROLE)
 
+    await database.get_active_roles(
+        interaction.guild,
+        user=interaction.user,
+    )
+
     # check for length
     if len(order) > 1900:
         msg = f"""
