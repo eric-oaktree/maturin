@@ -122,7 +122,9 @@ async def view_orders(interaction: discord.Interaction, turn: int):
     # print(orders_df.head())
 
     if orders_df.empty:
-        await interaction.followup.send("No Orders Found", ephemeral=True)
+        await interaction.followup.send(
+            "No Orders Found (Nothing for the Turn?)", ephemeral=True
+        )
         return
 
     # filter DF for orders that they are allowed to see
