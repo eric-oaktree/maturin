@@ -368,7 +368,7 @@ async def admin_view_orders(
 
     if orders_df.shape[0] > 10:
         await interaction.followup.send(
-            "Woah there cowboy, that's a lot of orders. Add some filters and try again.",
+            f"Woah there cowboy, that's a lot of orders ({orders_df.shape[0]}). Add some filters and try again.",
             ephemeral=True,
         )
         return
