@@ -140,9 +140,11 @@ def execute_sql(sql: str, commit: bool = True, params: list = None):
             CONN.execute(sql, params)
         else:
             CONN.execute(sql)
-    except ParserException:
-        print(sql)
-        raise ParserException()
+    except Exception as e:  # Catch all exceptions using 'Exception' class
+        print(f"An error occurred while executing the SQL query: {str(e)}")
+        print("SQL Query:", sql)
+        raise  # Re-raise the exception or handle it as needed
+
     if commit:
         CONN.commit()
 
