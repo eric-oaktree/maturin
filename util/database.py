@@ -238,7 +238,7 @@ def get_orders(
             case when os.status is null then 'Incomplete' else os.status end as status
         from orders_queue oq
         join users u on oq.user_id = u.user_id
-        join roles r on oq.role_id = r.role_id
+        left join roles r on oq.role_id = r.role_id
         left join order_status os on oq.order_id = os.order_id
         where 1=1
             and turn = ?
