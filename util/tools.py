@@ -52,6 +52,11 @@ async def get_or_create_user_thread(interaction: discord.Interaction):
 
     thread = letter_channel.get_thread(int(uth["personal_inbox_id"]))
     if thread is None:
+        print(
+            "Could not find thread for letter channel",
+            letter_channel,
+            int(uth["personal_inbox_id"]),
+        )
         # make new thread
         if udf["nick"] == "None":
             thread_name = f"{udf['name']} Personal Letters"
